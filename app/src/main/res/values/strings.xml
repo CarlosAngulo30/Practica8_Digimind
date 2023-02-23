@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MyDigimind</string>
+    <string name="title_home">My Board</string>
+    <string name="title_add">New Reminder</string>
+</resources>
