@@ -1,13 +1,18 @@
 package angulo.carlos.mydigimind.ui.dashboard
 
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import angulo.carlos.mydigimind.R
 import angulo.carlos.mydigimind.databinding.FragmentDashboardBinding
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class DashboardFragment : Fragment() {
 
@@ -28,9 +33,61 @@ class DashboardFragment : Fragment() {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        val storage = FirebaseFirestore.getInstance()
+
+        val btn_time: Button = root.findViewById(R.id.time)
+        btn_time.setOnClickListener{
+            val cal = Calendar.getInstance()
+            val timeSetListener = TimePickerDialog.OnTimeSetListener { timePicker, hour, minute ->
+                cal.set(Calendar.HOUR_OF_DAY,hour)
+                cal.set(Calendar.MINUTE, minute)
+
+                btn_time.text = SimpleDateFormat("HH:mm").format(cal.time)
+            }
+            TimePickerDialog(root.context, timeSetListener, cal.get(Calendar.HOUR_OF_DAY), cal.get(
+                Calendar.MINUTE), true).show()
+        }
+
+        val done: Button = root.findViewById(R.id.done)
+        val et_titulo: EditText = root.findViewById(R.id.name)
+        val monday: CheckBox = root.findViewById(R.id.monday)
+        val tuesday: CheckBox = root.findViewById(R.id.tuesday)
+        val wednesday: CheckBox = root.findViewById(R.id.wednesday)
+        val thursday: CheckBox = root.findViewById(R.id.thursday)
+        val friday: CheckBox = root.findViewById(R.id.friday)
+        val saturday: CheckBox = root.findViewById(R.id.saturday)
+        val sunday: CheckBox = root.findViewById(R.id.sunday)
+        done.setOnClickListener{
+            var title = et_titulo.text.toString()
+            var time = btn_time.text.toString()
+            var doOnMonday = monday.isChecked
+            var doOnTuesday = tuesday.isChecked
+            var doOnWednesday = wednesday.isChecked
+            var doOnThursday = thursday.isChecked
+            var doOnFriday = friday.isChecked
+            var doOnSaturday = saturday.isChecked
+            var doOnSunday = sunday.isChecked
+
+            var task = hashMapOf(
+                "actividad" to title,
+                "tiempo" to time,
+                "do" to doOnMonday,
+                "lu" to doOnTuesday,
+                "ma" to doOnWednesday,
+                "mi" to doOnThursday,
+                "ju" to doOnFriday,
+                "vi" to doOnSaturday,
+                "sa" to doOnSunday
+            )
+
+            storage.collection("actividades")
+                .add(task)
+                .addOnSuccessListener { documentReference ->
+                    Toast.makeText(root.context, "New task added!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(root.context, "Error adding task", Toast.LENGTH_SHORT).show()
+                }
         }
         return root
     }
